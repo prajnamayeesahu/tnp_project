@@ -1,161 +1,218 @@
-import { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useAppStore } from '@/store'
-import { announcementsAPI } from '@/services/api'
-import { useToast } from '@/hooks/use-toast'
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
+import {
+    Megaphone,
+    Search,
+    Plus,
+    Calendar,
+    Users,
+    Clock
+} from 'lucide-react';
+
+interface Announcement {
+    id: string;
+    title: string;
+    content: string;
+    targetAudience: 'ALL' | 'BRANCH' | 'BATCH';
+    targetBranch?: string;
+    targetBatch?: number;
+    publishedAt: string;
+    createdAt: string;
+}
 
 export function Announcements() {
-  const { announcements, setAnnouncements, isLoadingAnnouncements, setLoadingAnnouncements } = useAppStore()
-  const { toast } = useToast()
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnnouncements()
-  }, [])
+    useEffect(() => {
+        // Mock data - replace with actual API call
+        const mockAnnouncements: Announcement[] = [
+            {
+                id: '1',
+                title: 'New Job Postings Available',
+                content: 'Several new job opportunities have been posted from top-tier companies. Students are encouraged to check the job portal and apply for positions that match their skills and interests. Deadline for applications is approaching fast!',
+                targetAudience: 'ALL',
+                publishedAt: '2024-01-24T10:00:00Z',
+                createdAt: '2024-01-24T10:00:00Z'
+            },
+            {
+                id: '2',
+                title: 'Resume Building Workshop',
+                content: 'Join our comprehensive resume building workshop scheduled for next week. Learn how to create compelling resumes that stand out to recruiters. Limited seats available.',
+                targetAudience: 'BATCH',
+                targetBatch: 4,
+                publishedAt: '2024-01-23T14:00:00Z',
+                createdAt: '2024-01-23T14:00:00Z'
+            },
+            {
+                id: '3',
+                title: 'Technical Interview Preparation',
+                content: 'Special session on technical interview preparation for Computer Science students. Topics include data structures, algorithms, system design, and coding best practices.',
+                targetAudience: 'BRANCH',
+                targetBranch: 'Computer Science',
+                publishedAt: '2024-01-22T16:00:00Z',
+                createdAt: '2024-01-22T16:00:00Z'
+            },
+            {
+                id: '4',
+                title: 'Company Visit: TechCorp Solutions',
+                content: 'TechCorp Solutions will be visiting our campus next month for recruitment. They are looking for talented software engineers and data scientists. Prepare your profiles and portfolios.',
+                targetAudience: 'ALL',
+                publishedAt: '2024-01-21T11:00:00Z',
+                createdAt: '2024-01-21T11:00:00Z'
+            }
+        ];
 
-  const fetchAnnouncements = async () => {
-    try {
-      setLoadingAnnouncements(true)
-      const data = await announcementsAPI.getAll()
-      setAnnouncements(data)
-    } catch (error) {
-      console.error('Failed to fetch announcements:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load announcements",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingAnnouncements(false)
-    }
-  }
+        setTimeout(() => {
+            setAnnouncements(mockAnnouncements);
+            setIsLoading(false);
+        }, 1000);
+    }, []);
 
-  const handleDeleteAnnouncement = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this announcement?')) {
-      try {
-        await announcementsAPI.delete(id)
-        toast({
-          title: "Success",
-          description: "Announcement deleted successfully",
-        })
-        fetchAnnouncements()
-      } catch (error) {
-        console.error('Failed to delete announcement:', error)
-        toast({
-          title: "Error",
-          description: "Failed to delete announcement",
-          variant: "destructive",
-        })
-      }
-    }
-  }
+    const filteredAnnouncements = announcements.filter(announcement =>
+        announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        announcement.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const getTargetAudienceLabel = (announcement: any) => {
-    switch (announcement.targetAudience) {
-      case 'ALL':
-        return 'All Students'
-      case 'BRANCH':
-        return `${announcement.targetBranch} Branch`
-      case 'BATCH':
-        return `Year ${announcement.targetBatch} Students`
-      default:
-        return 'Unknown'
-    }
-  }
+    const getTargetDisplay = (announcement: Announcement) => {
+        switch (announcement.targetAudience) {
+            case 'ALL':
+                return 'All Students';
+            case 'BRANCH':
+                return `${announcement.targetBranch} Students`;
+            case 'BATCH':
+                return `Batch ${announcement.targetBatch}`;
+            default:
+                return 'All Students';
+        }
+    };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Announcements</h1>
-          <p className="text-muted-foreground">
-            Create and manage announcements for students
-          </p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Announcement
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New Announcement</DialogTitle>
-            </DialogHeader>
-            <div className="p-4">
-              <p className="text-muted-foreground">Announcement creation form will be implemented here.</p>
+    const getTargetColor = (targetAudience: string) => {
+        switch (targetAudience) {
+            case 'ALL': return 'default';
+            case 'BRANCH': return 'secondary';
+            case 'BATCH': return 'outline';
+            default: return 'default';
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-96 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+        );
+    }
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Announcements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingAnnouncements ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-muted-foreground">Loading announcements...</p>
-              </div>
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Announcements</h1>
+                    <p className="text-muted-foreground">
+                        Important updates and notifications for students
+                    </p>
+                </div>
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Announcement
+                </Button>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Content</TableHead>
-                  <TableHead>Target Audience</TableHead>
-                  <TableHead>Published Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {announcements.map((announcement) => (
-                  <TableRow key={announcement.id}>
-                    <TableCell className="font-medium">{announcement.title}</TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate">
-                        {announcement.content}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getTargetAudienceLabel(announcement)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(announcement.publishedAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleDeleteAnnouncement(announcement.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+
+            {/* Search */}
+            <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Search announcements..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                        {filteredAnnouncements.length} announcements
+                    </span>
+                </div>
+            </div>
+
+            {/* Announcements List */}
+            <div className="space-y-4">
+                {filteredAnnouncements.map((announcement) => (
+                    <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader>
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-2">
+                                    <CardTitle className="text-xl">{announcement.title}</CardTitle>
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-1">
+                                            <Calendar className="h-4 w-4" />
+                                            <span>Published {new Date(announcement.publishedAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="h-4 w-4" />
+                                            <span>{new Date(announcement.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Badge variant={getTargetColor(announcement.targetAudience)}>
+                                    <Users className="h-3 w-3 mr-1" />
+                                    {getTargetDisplay(announcement)}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-muted-foreground leading-relaxed">
+                                {announcement.content}
+                            </p>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <div className="text-sm text-muted-foreground">
+                                    Target: {getTargetDisplay(announcement)}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button size="sm" variant="outline">
+                                        Edit
+                                    </Button>
+                                    <Button size="sm" variant="outline">
+                                        Share
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
+            </div>
+
+            {filteredAnnouncements.length === 0 && searchTerm && (
+                <div className="text-center py-12">
+                    <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No announcements found</h3>
+                    <p className="text-muted-foreground">
+                        Try adjusting your search terms or create a new announcement.
+                    </p>
+                </div>
+            )}
+
+            {announcements.length === 0 && !searchTerm && (
+                <div className="text-center py-12">
+                    <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No announcements yet</h3>
+                    <p className="text-muted-foreground">
+                        Create your first announcement to keep students informed.
+                    </p>
+                    <Button className="mt-4">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Announcement
+                    </Button>
+                </div>
+            )}
+        </div>
+    );
 }

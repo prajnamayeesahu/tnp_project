@@ -56,6 +56,7 @@ export const mockCompanies: Company[] = [
   {
     id: '1',
     name: 'TechCorp Solutions',
+    description: 'Leading technology solutions provider specializing in software development and consulting services.',
     website: 'https://techcorp.com',
     email: 'hr@techcorp.com',
     phone: '+1-555-0123',
@@ -66,6 +67,7 @@ export const mockCompanies: Company[] = [
   {
     id: '2',
     name: 'Global Finance Inc',
+    description: 'International financial services company providing investment banking and wealth management solutions.',
     website: 'https://globalfinance.com',
     email: 'careers@globalfinance.com',
     phone: '+1-555-0124',
@@ -87,7 +89,7 @@ export const mockJobs: Job[] = [
     type: 'FULL_TIME',
     salary: '80000-120000',
     status: 'OPEN',
-    applicationDeadline: '2023-12-31T23:59:59Z',
+    deadline: '2023-12-31T23:59:59Z',
     createdAt: '2023-01-20T10:00:00Z',
     updatedAt: '2023-01-20T10:00:00Z'
   },
@@ -102,7 +104,7 @@ export const mockJobs: Job[] = [
     type: 'FULL_TIME',
     salary: '60000-90000',
     status: 'OPEN',
-    applicationDeadline: '2023-12-25T23:59:59Z',
+    deadline: '2023-12-25T23:59:59Z',
     createdAt: '2023-01-21T10:00:00Z',
     updatedAt: '2023-01-21T10:00:00Z'
   }
@@ -152,32 +154,29 @@ export const mockDashboardStats: DashboardStats = {
 
 export const mockJobAnalytics: JobAnalytics = {
   jobId: '1',
-  jobTitle: 'Software Engineer',
   totalApplicants: 2,
-  applicantsByStatus: {
-    PENDING: 1,
-    SHORTLISTED: 1,
-    INTERVIEW: 0,
-    ACCEPTED: 0,
-    REJECTED: 0
-  }
+  shortlisted: 1,
+  selected: 0,
+  rejected: 0
 }
 
 export const mockStudentAnalytics: StudentAnalytics = {
-  totalStudents: mockStudents.length,
-  profileCompletionRate: (mockStudents.filter(s => s.profileCompleted).length / mockStudents.length) * 100,
-  studentsByBranch: {
-    'Computer Science': 1,
-    'Electrical': 1,
-    'Mechanical': 1,
-    'Civil': 0,
-    'Chemical': 0
+  profileCompletion: {
+    completed: mockStudents.filter(s => s.profileCompleted).length,
+    incomplete: mockStudents.filter(s => !s.profileCompleted).length
   },
-  studentsByYear: {
-    1: 0,
-    2: 1,
-    3: 1,
-    4: 1
-  },
+  branchDistribution: [
+    { branch: 'Computer Science', count: 1 },
+    { branch: 'Electrical', count: 1 },
+    { branch: 'Mechanical', count: 1 },
+    { branch: 'Civil', count: 0 },
+    { branch: 'Chemical', count: 0 }
+  ],
+  yearDistribution: [
+    { year: 1, count: 0 },
+    { year: 2, count: 1 },
+    { year: 3, count: 1 },
+    { year: 4, count: 1 }
+  ],
   averageCGPA: mockStudents.reduce((sum, s) => sum + s.cgpa, 0) / mockStudents.length
 }
