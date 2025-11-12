@@ -1,123 +1,43 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
-import {
-    FileText,
-    Search,
-    User,
-    Briefcase,
-    Clock
-} from 'lucide-react';
-
-interface Application {
-    id: string;
-    student: {
-        name: string;
-        registrationNumber: string;
-        branch: string;
-        cgpa: number;
-    };
-    job: {
-        title: string;
-        company: {
-            name: string;
-        };
-    };
-    status: 'PENDING' | 'SHORTLISTED' | 'INTERVIEW' | 'ACCEPTED' | 'REJECTED';
-    appliedAt: string;
-}
+import { useEffect, useMemo, useState } from 'react';
+import { useStore } from '../lib/store';
+import type { Application } from '../lib/types';
+import { FileText } from 'lucide-react';
 
 export function Applications() {
-    const [applications, setApplications] = useState<Application[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const applications = useStore((s) => s.applications);
+    const setApplications = useStore((s) => s.setApplications);
+    const updateApplication = useStore((s) => s.updateApplication);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Mock data - replace with actual API call
-        const mockApplications: Application[] = [
-            {
-                id: '1',
-                student: {
-                    name: 'John Doe',
-                    registrationNumber: 'CS2021001',
-                    branch: 'Computer Science',
-                    cgpa: 8.5
-                },
-                job: {
-                    title: 'Software Engineer',
-                    company: { name: 'TechCorp Solutions' }
-                },
-                status: 'PENDING',
-                appliedAt: '2024-01-22T10:00:00Z'
-            },
-            {
-                id: '2',
-                student: {
-                    name: 'Jane Smith',
-                    registrationNumber: 'EE2021002',
-                    branch: 'Electrical Engineering',
-                    cgpa: 9.2
-                },
-                job: {
-                    title: 'Software Engineer',
-                    company: { name: 'TechCorp Solutions' }
-                },
-                status: 'SHORTLISTED',
-                appliedAt: '2024-01-23T10:00:00Z'
-            },
-            {
-                id: '3',
-                student: {
-                    name: 'Mike Johnson',
-                    registrationNumber: 'ME2021003',
-                    branch: 'Mechanical Engineering',
-                    cgpa: 7.8
-                },
-                job: {
-                    title: 'Financial Analyst',
-                    company: { name: 'Global Finance Inc' }
-                },
-                status: 'INTERVIEW',
-                appliedAt: '2024-01-24T10:00:00Z'
-            }
-        ];
-
-        setTimeout(() => {
-            setApplications(mockApplications);
-            setIsLoading(false);
-        }, 1000);
-    }, []);
-
-    const filteredApplications = applications.filter(application => {
-        const matchesSearch =
-            application.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            application.student.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            application.job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            application.job.company.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'PENDING': return 'secondary';
-            case 'SHORTLISTED': return 'default';
-            case 'INTERVIEW': return 'outline';
-            case 'ACCEPTED': return 'default';
-            case 'REJECTED': return 'destructive';
-            default: return 'secondary';
+        if (applications.length === 0) {
+            const mock: Application[] = [
+                // Software Engineer — Tech Corp (7 items like screenshot)
+                { id: 'a1', jobId: 'job1', studentId: 's1', studentName: 'Student 1', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-21', updatedAt: '2025-11-07' },
+                { id: 'a2', jobId: 'job1', studentId: 's16', studentName: 'Student 16', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-27', updatedAt: '2025-11-12' },
+                { id: 'a3', jobId: 'job1', studentId: 's31', studentName: 'Student 31', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-17', updatedAt: '2025-11-06' },
+                { id: 'a4', jobId: 'job1', studentId: 's46', studentName: 'Student 46', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-01', updatedAt: '2025-11-10' },
+                { id: 'a5', jobId: 'job1', studentId: 's11', studentName: 'Student 11', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-20', updatedAt: '2025-11-06' },
+                { id: 'a6', jobId: 'job1', studentId: 's26', studentName: 'Student 26', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-05', updatedAt: '2025-11-07' },
+                { id: 'a7', jobId: 'job1', studentId: 's41', studentName: 'Student 41', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-05', updatedAt: '2025-11-07' },
+                // Data Analyst — InnoSoft Solutions (2 items like screenshot)
+                { id: 'b1', jobId: 'job2', studentId: 's2', studentName: 'Student 2', jobTitle: 'Data Analyst', companyName: 'InnoSoft Solutions', status: 'SHORTLISTED', appliedAt: '2025-11-03', updatedAt: '2025-11-10' },
+                { id: 'b2', jobId: 'job2', studentId: 's17', studentName: 'Student 17', jobTitle: 'Data Analyst', companyName: 'InnoSoft Solutions', status: 'SHORTLISTED', appliedAt: '2025-10-17', updatedAt: '2025-11-02' },
+            ];
+            setApplications(mock);
         }
-    };
-
-    const statusCounts = applications.reduce((acc, app) => {
-        acc[app.status] = (acc[app.status] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+        setIsLoading(false);
+    }, [applications.length, setApplications]);
+    // Group by jobId (fallback to jobTitle|companyName if id missing)
+    const groups = useMemo(() => {
+        const m: Record<string, { key: string; jobTitle: string; companyName: string; items: Application[] }> = {};
+        for (const a of applications) {
+            const key = a.jobId || `${a.jobTitle}|${a.companyName}`;
+            if (!m[key]) m[key] = { key, jobTitle: a.jobTitle, companyName: a.companyName, items: [] };
+            m[key].items.push(a);
+        }
+        return Object.values(m);
+    }, [applications]);
 
     if (isLoading) {
         return (
@@ -128,159 +48,101 @@ export function Applications() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Applications</h1>
-                    <p className="text-muted-foreground">
-                        Track and manage job applications
-                    </p>
+        <div className="space-y-6 animate-fade-in">
+            <div>
+                <h1 className="text-2xl font-semibold tracking-tight">Applications</h1>
+                <p className="text-sm text-muted-foreground">Track and manage student job applications</p>
+            </div>
+
+            {groups.map((g) => (
+                <div key={g.key} className="rounded-md border overflow-hidden bg-background">
+                    {/* Group header */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-muted/60">
+                        <div>
+                            <div className="font-medium text-sm">{g.jobTitle}</div>
+                            <div className="text-xs text-muted-foreground">{g.companyName}</div>
+                        </div>
+                        <span className="text-[11px] rounded-full border px-2 py-0.5 text-muted-foreground">
+                            {g.items.length} Applications
+                        </span>
+                    </div>
+                    {/* Group table */}
+                    <div className="w-full">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-muted-foreground bg-background/80">
+                                    <Th>Student</Th>
+                                    <Th className="w-40">Applied On</Th>
+                                    <Th className="w-40">Last Updated</Th>
+                                    <Th className="w-32">Status</Th>
+                                    <Th className="w-40">Update Status</Th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {g.items.map((a) => (
+                                    <tr key={a.id} className="border-t">
+                                        <Td>{a.studentName}</Td>
+                                        <Td>{new Date(a.appliedAt).toLocaleDateString()}</Td>
+                                        <Td>{new Date(a.updatedAt).toLocaleDateString()}</Td>
+                                        <Td>
+                                            <StatusBadge status={a.status} />
+                                        </Td>
+                                        <Td>
+                                            <select
+                                                value={a.status}
+                                                onChange={(e) =>
+                                                    updateApplication(a.id, { status: e.target.value as any, updatedAt: new Date().toISOString() })
+                                                }
+                                                className="px-3 py-1.5 border rounded-md bg-background text-sm"
+                                            >
+                                                <option value="APPLIED">Applied</option>
+                                                <option value="SHORTLISTED">Shortlisted</option>
+                                                <option value="INTERVIEW">Interview</option>
+                                                <option value="ACCEPTED">Accepted</option>
+                                                <option value="REJECTED">Rejected</option>
+                                            </select>
+                                        </Td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            ))}
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-5">
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold">{applications.length}</div>
-                            <div className="text-sm text-muted-foreground">Total</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-orange-600">{statusCounts.PENDING || 0}</div>
-                            <div className="text-sm text-muted-foreground">Pending</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-600">{statusCounts.SHORTLISTED || 0}</div>
-                            <div className="text-sm text-muted-foreground">Shortlisted</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-600">{statusCounts.INTERVIEW || 0}</div>
-                            <div className="text-sm text-muted-foreground">Interview</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">{statusCounts.ACCEPTED || 0}</div>
-                            <div className="text-sm text-muted-foreground">Accepted</div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Search and Filter */}
-            <div className="flex items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search applications..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
-                </div>
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border rounded-md bg-background"
-                >
-                    <option value="all">All Status</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="SHORTLISTED">Shortlisted</option>
-                    <option value="INTERVIEW">Interview</option>
-                    <option value="ACCEPTED">Accepted</option>
-                    <option value="REJECTED">Rejected</option>
-                </select>
-                <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                        {filteredApplications.length} applications
-                    </span>
-                </div>
-            </div>
-
-            {/* Applications List */}
-            <div className="space-y-4">
-                {filteredApplications.map((application) => (
-                    <Card key={application.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-3 flex-1">
-                                    <div className="flex items-center gap-4">
-                                        <div>
-                                            <h3 className="font-semibold text-lg">{application.student.name}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {application.student.registrationNumber}
-                                            </p>
-                                        </div>
-                                        <Badge variant={getStatusColor(application.status)}>
-                                            {application.status}
-                                        </Badge>
-                                    </div>
-
-                                    <div className="grid gap-2 md:grid-cols-2">
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <User className="h-4 w-4 text-muted-foreground" />
-                                            <span>{application.student.branch}</span>
-                                            <span className="text-muted-foreground">•</span>
-                                            <span>CGPA: {application.student.cgpa}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                            <span>{application.job.title}</span>
-                                            <span className="text-muted-foreground">at</span>
-                                            <span>{application.job.company.name}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Clock className="h-4 w-4" />
-                                        <span>Applied {new Date(application.appliedAt).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2 ml-4">
-                                    <Button size="sm" variant="outline">
-                                        View Details
-                                    </Button>
-                                    <Button size="sm">
-                                        Update Status
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {filteredApplications.length === 0 && (
+            {groups.length === 0 && (
                 <div className="text-center py-12">
                     <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                        {searchTerm ? 'No applications found' : 'No applications yet'}
-                    </h3>
-                    <p className="text-muted-foreground">
-                        {searchTerm
-                            ? 'Try adjusting your search terms or filters.'
-                            : 'Applications will appear here once students start applying for jobs.'
-                        }
-                    </p>
+                    <h3 className="text-lg font-medium mb-2">No applications yet</h3>
+                    <p className="text-muted-foreground">Applications will appear here once students start applying for jobs.</p>
                 </div>
             )}
         </div>
+    );
+}
+
+function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
+    return <th className={`px-4 py-3 text-xs font-medium text-muted-foreground ${className}`}>{children}</th>;
+}
+function Td({ children, className = '', colSpan }: React.PropsWithChildren<{ className?: string; colSpan?: number }>) {
+    return (
+        <td className={`px-4 py-3 align-middle ${className}`} colSpan={colSpan}>
+            {children}
+        </td>
+    );
+}
+
+function StatusBadge({ status }: { status: Application['status'] }) {
+    const map: Record<string, string> = {
+        APPLIED: 'bg-blue-100 text-blue-700',
+        SHORTLISTED: 'bg-purple-100 text-purple-700',
+        INTERVIEW: 'bg-amber-100 text-amber-700',
+        ACCEPTED: 'bg-green-100 text-green-700',
+        REJECTED: 'bg-red-100 text-red-700',
+    };
+    return (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${map[status] || 'bg-muted text-muted-foreground'}`}>
+            {status}
+        </span>
     );
 }

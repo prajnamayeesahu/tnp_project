@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
+import { AddJobModal } from './Modals';
 import {
     Briefcase,
     Search,
-    Plus,
     MapPin,
     DollarSign,
     Calendar,
@@ -109,7 +109,7 @@ export function Jobs() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Jobs</h1>
@@ -117,10 +117,7 @@ export function Jobs() {
                         Browse and manage job opportunities
                     </p>
                 </div>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Post Job
-                </Button>
+                <AddJobModal />
             </div>
 
             {/* Search and Stats */}

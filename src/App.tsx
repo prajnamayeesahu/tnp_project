@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
-import { Dashboard } from './components/Dashboard';
-import { Students } from './components/Students';
+import { Dashboard } from './pages/Dashboard';
+import { Students } from './pages/Students';
 import { Companies } from './pages/Companies';
-import { Jobs } from './components/Jobs';
+import { Jobs } from './pages/Jobs';
 import { Applications } from './pages/Applications';
 import { Announcements } from './pages/Announcements';
 import { StudentAnalytics } from './pages/analytics/StudentAnalytics';

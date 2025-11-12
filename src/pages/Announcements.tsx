@@ -1,104 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { useEffect, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
+import { AddAnnouncementModal } from '../components/Modals';
+import { useStore } from '../lib/store';
+import type { Announcement } from '../lib/types';
+import { Search, Megaphone, Edit, Trash2 } from 'lucide-react';
 import {
-    Megaphone,
-    Search,
-    Plus,
-    Calendar,
-    Users,
-    Clock
-} from 'lucide-react';
-
-interface Announcement {
-    id: string;
-    title: string;
-    content: string;
-    targetAudience: 'ALL' | 'BRANCH' | 'BATCH';
-    targetBranch?: string;
-    targetBatch?: number;
-    publishedAt: string;
-    createdAt: string;
-}
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '../components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from '../components/ui/alert-dialog';
+import { AnnouncementForm } from '../components/announcements/AnnouncementForm';
 
 export function Announcements() {
-    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const announcements = useStore((s) => s.announcements);
+    const setAnnouncements = useStore((s) => s.setAnnouncements);
+    const updateAnnouncement = useStore((s) => s.updateAnnouncement);
+    const deleteAnnouncement = useStore((s) => s.deleteAnnouncement);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+    const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
 
     useEffect(() => {
-        // Mock data - replace with actual API call
-        const mockAnnouncements: Announcement[] = [
-            {
-                id: '1',
-                title: 'New Job Postings Available',
-                content: 'Several new job opportunities have been posted from top-tier companies. Students are encouraged to check the job portal and apply for positions that match their skills and interests. Deadline for applications is approaching fast!',
-                targetAudience: 'ALL',
-                publishedAt: '2024-01-24T10:00:00Z',
-                createdAt: '2024-01-24T10:00:00Z'
-            },
-            {
-                id: '2',
-                title: 'Resume Building Workshop',
-                content: 'Join our comprehensive resume building workshop scheduled for next week. Learn how to create compelling resumes that stand out to recruiters. Limited seats available.',
-                targetAudience: 'BATCH',
-                targetBatch: 4,
-                publishedAt: '2024-01-23T14:00:00Z',
-                createdAt: '2024-01-23T14:00:00Z'
-            },
-            {
-                id: '3',
-                title: 'Technical Interview Preparation',
-                content: 'Special session on technical interview preparation for Computer Science students. Topics include data structures, algorithms, system design, and coding best practices.',
-                targetAudience: 'BRANCH',
-                targetBranch: 'Computer Science',
-                publishedAt: '2024-01-22T16:00:00Z',
-                createdAt: '2024-01-22T16:00:00Z'
-            },
-            {
-                id: '4',
-                title: 'Company Visit: TechCorp Solutions',
-                content: 'TechCorp Solutions will be visiting our campus next month for recruitment. They are looking for talented software engineers and data scientists. Prepare your profiles and portfolios.',
-                targetAudience: 'ALL',
-                publishedAt: '2024-01-21T11:00:00Z',
-                createdAt: '2024-01-21T11:00:00Z'
-            }
-        ];
+        if (announcements.length === 0) {
+            const mock: Announcement[] = [
+                {
+                    id: '1',
+                    title: 'New Job Postings Available',
+                    content: 'Several new job opportunities have been posted from top-tier companies. Check the job portal and apply before deadlines.',
+                    target: 'ALL',
+                    createdAt: '2024-01-24T10:00:00Z',
+                    updatedAt: '2024-01-24T10:00:00Z',
+                },
+            ];
+            setAnnouncements(mock);
+        }
+        setIsLoading(false);
+    }, [announcements.length, setAnnouncements]);
 
-        setTimeout(() => {
-            setAnnouncements(mockAnnouncements);
-            setIsLoading(false);
-        }, 1000);
-    }, []);
-
-    const filteredAnnouncements = announcements.filter(announcement =>
-        announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        announcement.content.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = announcements.filter(
+        (a) =>
+            a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const getTargetDisplay = (announcement: Announcement) => {
-        switch (announcement.targetAudience) {
-            case 'ALL':
-                return 'All Students';
-            case 'BRANCH':
-                return `${announcement.targetBranch} Students`;
-            case 'BATCH':
-                return `Batch ${announcement.targetBatch}`;
-            default:
-                return 'All Students';
-        }
-    };
-
-    const getTargetColor = (targetAudience: string) => {
-        switch (targetAudience) {
-            case 'ALL': return 'default';
-            case 'BRANCH': return 'secondary';
-            case 'BATCH': return 'outline';
-            default: return 'default';
-        }
-    };
 
     if (isLoading) {
         return (
@@ -108,22 +66,33 @@ export function Announcements() {
         );
     }
 
+    const targetLabel = (a: Announcement) => {
+        switch (a.target) {
+            case 'ALL':
+                return 'All Students';
+            case 'BRANCH':
+                return `${a.targetValue} Students`;
+            case 'BATCH':
+                return `Batch ${a.targetValue}`;
+            default:
+                return 'All Students';
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Announcements</h1>
-                    <p className="text-muted-foreground">
-                        Important updates and notifications for students
+                    <h1 className="text-2xl font-semibold tracking-tight">Announcements</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Manage announcements and notifications for students
                     </p>
                 </div>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Announcement
-                </Button>
+                {/* Keep existing modal trigger */}
+                <AddAnnouncementModal />
             </div>
 
-            {/* Search */}
+            {/* Search + count */}
             <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -134,85 +103,119 @@ export function Announcements() {
                         className="pl-10"
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Megaphone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                        {filteredAnnouncements.length} announcements
-                    </span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Megaphone className="h-4 w-4" />
+                    {filtered.length} announcements
                 </div>
             </div>
 
-            {/* Announcements List */}
-            <div className="space-y-4">
-                {filteredAnnouncements.map((announcement) => (
-                    <Card key={announcement.id} className="hover:shadow-md transition-shadow">
-                        <CardHeader>
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-2">
-                                    <CardTitle className="text-xl">{announcement.title}</CardTitle>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-1">
-                                            <Calendar className="h-4 w-4" />
-                                            <span>Published {new Date(announcement.publishedAt).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="h-4 w-4" />
-                                            <span>{new Date(announcement.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
-                                    </div>
+            {/* Card list */}
+            <div className="space-y-5">
+                {filtered.map((a) => (
+                    <div
+                        key={a.id}
+                        className="rounded-md border bg-card px-5 py-4 shadow-sm hover:shadow transition-shadow"
+                    >
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                    <h2 className="font-medium text-sm md:text-base">{a.title}</h2>
+                                    <span className="inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                        {targetLabel(a)}
+                                    </span>
                                 </div>
-                                <Badge variant={getTargetColor(announcement.targetAudience)}>
-                                    <Users className="h-3 w-3 mr-1" />
-                                    {getTargetDisplay(announcement)}
-                                </Badge>
+                                <p className="text-[11px] text-muted-foreground">
+                                    Published on {new Date(a.createdAt).toLocaleDateString()} at{' '}
+                                    {new Date(a.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </p>
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <p className="text-muted-foreground leading-relaxed">
-                                {announcement.content}
-                            </p>
-
-                            <div className="flex items-center justify-between pt-2">
-                                <div className="text-sm text-muted-foreground">
-                                    Target: {getTargetDisplay(announcement)}
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button size="sm" variant="outline">
-                                        Edit
-                                    </Button>
-                                    <Button size="sm" variant="outline">
-                                        Share
-                                    </Button>
-                                </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                    onClick={() => {
+                                        setEditingAnnouncement(a);
+                                        setEditOpen(true);
+                                    }}
+                                    aria-label="Edit announcement"
+                                >
+                                    <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-red-600 hover:text-red-700"
+                                    onClick={() => {
+                                        setDeletingAnnouncement(a);
+                                        setDeleteOpen(true);
+                                    }}
+                                    aria-label="Delete announcement"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                        <div className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                            {a.content}
+                        </div>
+                    </div>
                 ))}
+                {filtered.length === 0 && (
+                    <div className="rounded-md border bg-card px-5 py-10 text-center text-sm text-muted-foreground">
+                        No announcements found.
+                    </div>
+                )}
             </div>
 
-            {filteredAnnouncements.length === 0 && searchTerm && (
-                <div className="text-center py-12">
-                    <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No announcements found</h3>
-                    <p className="text-muted-foreground">
-                        Try adjusting your search terms or create a new announcement.
-                    </p>
-                </div>
-            )}
+            {/* Edit Dialog */}
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl">Edit Announcement</DialogTitle>
+                    </DialogHeader>
+                    {editingAnnouncement && (
+                        <AnnouncementForm
+                            initialData={editingAnnouncement}
+                            onSubmit={(data) => {
+                                updateAnnouncement(editingAnnouncement.id, {
+                                    title: data.title,
+                                    content: data.content,
+                                    target: data.target,
+                                    targetValue: data.targetValue,
+                                });
+                                setEditOpen(false);
+                            }}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
 
-            {announcements.length === 0 && !searchTerm && (
-                <div className="text-center py-12">
-                    <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No announcements yet</h3>
-                    <p className="text-muted-foreground">
-                        Create your first announcement to keep students informed.
-                    </p>
-                    <Button className="mt-4">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Announcement
-                    </Button>
-                </div>
-            )}
+            {/* Delete Dialog */}
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogContent className="bg-white border shadow-xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deletingAnnouncement
+                                ? `This will permanently delete "${deletingAnnouncement.title}". This action cannot be undone.`
+                                : 'This will permanently delete the announcement.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="hover:scale-[1.02] transition">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition"
+                            onClick={() => {
+                                if (deletingAnnouncement) deleteAnnouncement(deletingAnnouncement.id);
+                                setDeleteOpen(false);
+                            }}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

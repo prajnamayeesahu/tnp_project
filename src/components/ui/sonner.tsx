@@ -1,22 +1,35 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+// Custom Toaster ensuring opaque background & high z-index
+const Toaster = (props: ToasterProps) => {
+  const mergedToastOptions: ToasterProps["toastOptions"] = {
+    ...props.toastOptions,
+    classNames: {
+      ...(props.toastOptions?.classNames || {}),
+      toast: [
+        "bg-white dark:bg-neutral-900",
+        "text-foreground",
+        "shadow-lg",
+        "border border-border",
+        "rounded-md",
+        props.toastOptions?.classNames?.toast || ""
+      ].join(" ").trim(),
+    },
+    style: {
+      backdropFilter: "none", // remove any blur transparency
+      ...props.toastOptions?.style,
+    },
+  };
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      position={props.position || "top-right"}
+      theme={props.theme || "light"}
+      toastOptions={mergedToastOptions}
       className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
+      style={{ zIndex: 10000 }}
       {...props}
     />
   );
