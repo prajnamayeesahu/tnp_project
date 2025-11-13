@@ -26,6 +26,9 @@ export interface Company {
   website?: string;
   industry: string;
   location: string;
+  email?: string;
+  phone?: string;
+  address?: string;
   createdAt: string;
 }
 

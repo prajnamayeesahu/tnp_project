@@ -1,9 +1,24 @@
 import { z } from 'zod';
 
 export const studentSchema = z.object({
-  registrationNumber: z.string().min(1, 'Registration number is required'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
+  // Allow either all digits OR alphanumeric with at least one letter and one number
+  registrationNumber: z
+    .string()
+    .min(1, 'Registration number is required')
+    .regex(/^(?:\d+|(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+)$/,
+      'Registration number must be all digits or a mix of letters and numbers (no spaces)'
+    ),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .regex(/^[A-Za-z][A-Za-z .'-]*$/, "Name can contain letters, spaces, .' and - only"),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required')
+    .regex(/^(?!.*\.{2})[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+      'Enter a valid email address'
+    ),
   branch: z.enum(['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL'], {
     message: 'Branch is required',
   }),
@@ -11,7 +26,19 @@ export const studentSchema = z.object({
     message: 'Year is required',
   }),
   cgpa: z.number().min(0, 'CGPA must be at least 0').max(10, 'CGPA cannot exceed 10'),
-  phone: z.string().optional(),
+  // Optional phone; accept common formatting then validate digit count (10-15)
+  phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val.length === 0) return true;
+        const digits = val.replace(/\D/g, '');
+        return digits.length >= 10 && digits.length <= 15;
+      },
+      { message: 'Phone number must contain 10–15 digits' },
+    ),
 });
 
 export const companySchema = z.object({
@@ -20,6 +47,24 @@ export const companySchema = z.object({
   website: z.string().url('Invalid URL').optional().or(z.literal('')),
   industry: z.string().min(2, 'Industry is required'),
   location: z.string().min(2, 'Location is required'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required')
+    .regex(/^(?!.*\.{2})[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+      'Enter a valid email address'
+    ),
+  phone: z
+    .string()
+    .trim()
+    .refine(
+      (val) => {
+        const digits = val.replace(/\D/g, '');
+        return digits.length >= 10 && digits.length <= 15;
+      },
+      { message: 'Phone number must contain 10–15 digits' },
+    ),
+  address: z.string().min(5, 'Address is required'),
 });
 
 export const jobSchema = z.object({

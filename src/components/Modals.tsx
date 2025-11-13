@@ -28,7 +28,7 @@ export function AddStudentModal() {
         setIsLoading(true);
         try {
             const newStudent: Student = {
-                id: Date.now().toString(), // Simple ID generation
+                id: Date.now().toString(), 
                 registrationNumber: data.registrationNumber,
                 name: data.name,
                 email: data.email,
@@ -90,6 +90,9 @@ export function AddCompanyModal() {
                 website: data.website,
                 industry: data.industry,
                 location: data.location,
+                email: data.email,
+                phone: data.phone,
+                address: data.address,
                 createdAt: new Date().toISOString()
             };
 

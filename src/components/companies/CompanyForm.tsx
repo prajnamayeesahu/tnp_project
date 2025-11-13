@@ -22,12 +22,15 @@ export function CompanyForm({ onSubmit, initialData, isLoading }: CompanyFormPro
     resolver: zodResolver(companySchema),
     defaultValues: initialData
       ? {
-          name: initialData.name,
-          description: initialData.description,
-          website: initialData.website || '',
-          industry: initialData.industry,
-          location: initialData.location,
-        }
+        name: initialData.name,
+        description: initialData.description,
+        website: initialData.website || '',
+        industry: initialData.industry,
+        location: initialData.location,
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        address: initialData.address || '',
+      }
       : undefined,
   });
 
@@ -69,6 +72,42 @@ export function CompanyForm({ onSubmit, initialData, isLoading }: CompanyFormPro
             placeholder="https://example.com"
           />
           {errors.website && <p className="text-sm text-destructive">{errors.website.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            {...register('email')}
+            placeholder="hr@company.com"
+          />
+          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input
+            id="phone"
+            inputMode="tel"
+            pattern="^[0-9()+\-\s]{10,20}$"
+            title="Enter 10–15 digits (spaces, +, - and parentheses allowed)"
+            {...register('phone')}
+            placeholder="+1 (555) 012-3456"
+          />
+          {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="address">Address</Label>
+          <Textarea
+            id="address"
+            rows={3}
+            {...register('address')}
+            placeholder="Company address, city, country"
+          />
+          {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
         </div>
 
         <div className="space-y-2 md:col-span-2">

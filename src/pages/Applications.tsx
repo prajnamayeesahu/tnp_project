@@ -12,15 +12,13 @@ export function Applications() {
     useEffect(() => {
         if (applications.length === 0) {
             const mock: Application[] = [
-                // Software Engineer — Tech Corp (7 items like screenshot)
+                // Software Engineer — Tech Corp 
                 { id: 'a1', jobId: 'job1', studentId: 's1', studentName: 'Student 1', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-21', updatedAt: '2025-11-07' },
                 { id: 'a2', jobId: 'job1', studentId: 's16', studentName: 'Student 16', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-27', updatedAt: '2025-11-12' },
                 { id: 'a3', jobId: 'job1', studentId: 's31', studentName: 'Student 31', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-17', updatedAt: '2025-11-06' },
                 { id: 'a4', jobId: 'job1', studentId: 's46', studentName: 'Student 46', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-01', updatedAt: '2025-11-10' },
-                { id: 'a5', jobId: 'job1', studentId: 's11', studentName: 'Student 11', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-10-20', updatedAt: '2025-11-06' },
-                { id: 'a6', jobId: 'job1', studentId: 's26', studentName: 'Student 26', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-05', updatedAt: '2025-11-07' },
                 { id: 'a7', jobId: 'job1', studentId: 's41', studentName: 'Student 41', jobTitle: 'Software Engineer', companyName: 'Tech Corp', status: 'APPLIED', appliedAt: '2025-11-05', updatedAt: '2025-11-07' },
-                // Data Analyst — InnoSoft Solutions (2 items like screenshot)
+                // Data Analyst — InnoSoft Solutions 
                 { id: 'b1', jobId: 'job2', studentId: 's2', studentName: 'Student 2', jobTitle: 'Data Analyst', companyName: 'InnoSoft Solutions', status: 'SHORTLISTED', appliedAt: '2025-11-03', updatedAt: '2025-11-10' },
                 { id: 'b2', jobId: 'job2', studentId: 's17', studentName: 'Student 17', jobTitle: 'Data Analyst', companyName: 'InnoSoft Solutions', status: 'SHORTLISTED', appliedAt: '2025-10-17', updatedAt: '2025-11-02' },
             ];

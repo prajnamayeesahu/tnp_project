@@ -30,14 +30,14 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
     resolver: zodResolver(studentSchema),
     defaultValues: initialData
       ? {
-          registrationNumber: initialData.registrationNumber,
-          name: initialData.name,
-          email: initialData.email,
-          branch: initialData.branch,
-          year: initialData.year,
-          cgpa: initialData.cgpa,
-          phone: initialData.phone || '',
-        }
+        registrationNumber: initialData.registrationNumber,
+        name: initialData.name,
+        email: initialData.email,
+        branch: initialData.branch,
+        year: initialData.year,
+        cgpa: initialData.cgpa,
+        phone: initialData.phone || '',
+      }
       : undefined,
   });
 
@@ -51,6 +51,9 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
           <Label htmlFor="registrationNumber">Registration Number</Label>
           <Input
             id="registrationNumber"
+            inputMode="text"
+            pattern="^(?:[0-9]+|(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+)$"
+            title="Use only digits OR a mix of letters and numbers; no spaces"
             {...register('registrationNumber')}
             placeholder="REG2024001"
           />
@@ -61,7 +64,15 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
 
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" {...register('name')} placeholder="John Doe" />
+          <Input
+            id="name"
+            placeholder="John Doe"
+            autoCapitalize="words"
+            autoComplete="name"
+            pattern="[A-Za-z][A-Za-z .' -]*"
+            title="Use letters, spaces, . ' and - only"
+            {...register('name')}
+          />
           {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
         </div>
 
@@ -78,7 +89,14 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
 
         <div className="space-y-2">
           <Label htmlFor="phone">Phone (Optional)</Label>
-          <Input id="phone" {...register('phone')} placeholder="+91 9876543210" />
+          <Input
+            id="phone"
+            inputMode="tel"
+            pattern="^[0-9()+\-\s]{10,20}$"
+            title="Enter 10–15 digits (spaces, +, - and parentheses allowed)"
+            {...register('phone')}
+            placeholder="+91 9876543210"
+          />
           {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
         </div>
 
@@ -86,7 +104,7 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
           <Label htmlFor="branch">Branch</Label>
           <Select
             value={branch}
-            onValueChange={(value:any) => setValue('branch', value as any, { shouldValidate: true })}
+            onValueChange={(value: any) => setValue('branch', value as any, { shouldValidate: true })}
           >
             <SelectTrigger id="branch">
               <SelectValue placeholder="Select branch" />
@@ -106,7 +124,7 @@ export function StudentForm({ onSubmit, initialData, isLoading }: StudentFormPro
           <Label htmlFor="year">Year</Label>
           <Select
             value={year}
-            onValueChange={(value:any) => setValue('year', value as any, { shouldValidate: true })}
+            onValueChange={(value: any) => setValue('year', value as any, { shouldValidate: true })}
           >
             <SelectTrigger id="year">
               <SelectValue placeholder="Select year" />
