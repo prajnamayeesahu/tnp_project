@@ -202,7 +202,7 @@ export function Jobs() {
 									<Button
 										variant="ghost"
 										size="icon"
-										className="h-8 w-8 mr-1 bg-muted hover:bg-muted/80 rounded-md text-muted-foreground hover:text-foreground"
+										className="h-8 w-8 mr-1 bg-muted hover:bg-muted/80 rounded-md text-muted-foreground hover:text-foreground cursor-pointer"
 										onClick={() => navigate(`/analytics/jobs/${job.id}`)}
 										aria-label="View job analytics"
 									>
@@ -211,7 +211,7 @@ export function Jobs() {
 									<Button
 										variant="ghost"
 										size="icon"
-										className="h-8 w-8 text-muted-foreground hover:text-foreground"
+										className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
 										onClick={() => {
 											setEditingJob(job);
 											setEditOpen(true);
@@ -223,7 +223,7 @@ export function Jobs() {
 									<Button
 										variant="ghost"
 										size="icon"
-										className="h-8 w-8 text-red-600 hover:text-red-700"
+										className="h-8 w-8 text-red-600 hover:text-red-700 cursor-pointer"
 										onClick={() => {
 											setDeletingJob(job);
 											setDeleteOpen(true);
@@ -281,7 +281,7 @@ export function Jobs() {
 					<AlertDialogFooter>
 						<AlertDialogCancel className="hover:scale-[1.02] transition">Cancel</AlertDialogCancel>
 						<AlertDialogAction
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition"
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition cursor-pointer"
 							onClick={() => {
 								if (deletingJob) deleteJob(deletingJob.id);
 								setDeleteOpen(false);

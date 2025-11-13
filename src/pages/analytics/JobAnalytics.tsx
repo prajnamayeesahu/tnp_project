@@ -57,7 +57,7 @@ export function JobAnalytics() {
     return (
       <div className="flex h-96 flex-col items-center justify-center">
         <p className="text-muted-foreground">Job not found</p>
-        <Button onClick={() => navigate('/jobs')} className="mt-4">
+        <Button onClick={() => navigate('/jobs')} className="mt-4 cursor-pointer">
           Back to Jobs
         </Button>
       </div>
@@ -90,7 +90,7 @@ export function JobAnalytics() {
     <div className="space-y-8 animate-fade-in">
       <button
         onClick={() => navigate('/jobs')}
-        className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-foreground"
+        className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>

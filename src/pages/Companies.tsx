@@ -138,7 +138,7 @@ export function Companies() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                                         onClick={() => {
                                             setEditingCompany(company);
                                             setEditOpen(true);
@@ -150,7 +150,7 @@ export function Companies() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-red-600 hover:text-red-700"
+                                        className="h-8 w-8 text-red-600 hover:text-red-700 cursor-pointer"
                                         onClick={() => {
                                             setDeletingCompany(company);
                                             setDeleteOpen(true);
@@ -202,7 +202,7 @@ export function Companies() {
                     <AlertDialogFooter>
                         <AlertDialogCancel className="hover:scale-[1.02] transition">Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition"
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition cursor-pointer"
                             onClick={() => {
                                 if (deletingCompany) deleteCompany(deletingCompany.id);
                                 setDeleteOpen(false);
