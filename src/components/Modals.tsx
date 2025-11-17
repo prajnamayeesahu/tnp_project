@@ -17,7 +17,7 @@ import {
 } from './announcements/AnnouncementForm';
 import { Plus, UserPlus, Building2, Briefcase, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
-import { useStore } from '../lib/store'; // still used for students only
+import { useStore } from '../lib/store'; 
 import type { StudentFormData } from '../lib/schemas';
 import type { Student } from '../lib/types';
 import axios from 'axios';

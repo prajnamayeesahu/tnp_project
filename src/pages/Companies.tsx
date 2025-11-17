@@ -21,6 +21,7 @@ import {
     AlertDialogAction,
 } from '../components/ui/alert-dialog';
 import axios from 'axios';
+import { AddCompanyModal } from '../components/Modals';
 
 export function Companies() {
     const [companies, setCompanies] = useState<Company[]>([]);
@@ -127,7 +128,7 @@ export function Companies() {
                         Manage company profiles and partnerships
                     </p>
                 </div>
-                {/* you can plug your AddCompanyModal here later if you want */}
+                <AddCompanyModal/>
             </div>
 
             <div className="flex items-center gap-4">

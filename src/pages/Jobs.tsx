@@ -28,6 +28,8 @@ import {
 } from '../components/ui/select';
 import axios from 'axios';
 import { JobForm, JobFormValues } from '../components/jobs/JobForm';
+import { AddJobModal } from '../components/Modals';
+
 
 type Company = {
 	id: string;
@@ -75,7 +77,7 @@ export function Jobs() {
 			: {};
 	};
 
-	
+
 	useEffect(() => {
 		const fetchAll = async () => {
 			try {
@@ -195,6 +197,7 @@ export function Jobs() {
 						Manage job postings and opportunities
 					</p>
 				</div>
+				<AddJobModal />
 			</div>
 
 			<div className="flex items-center gap-4">
