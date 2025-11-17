@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { AddJobModal } from '../components/Modals';
-import { useStore } from '../lib/store';
-import type { Job, Company } from '../lib/types';
 import { Search, Edit, Trash2, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -22,7 +19,6 @@ import {
 	AlertDialogCancel,
 	AlertDialogAction,
 } from '../components/ui/alert-dialog';
-import { JobForm } from '../components/jobs/JobForm';
 import {
 	Select,
 	SelectContent,
@@ -30,16 +26,38 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '../components/ui/select';
+import axios from 'axios';
+import { JobForm, JobFormValues } from '../components/jobs/JobForm';
+
+type Company = {
+	id: string;
+	name: string;
+};
+
+type Job = {
+	id: string;
+	companyId: string;
+	companyName: string;
+	jobTitle: string;
+	jobType: string;
+	description: string;
+	testLink: string | null;
+	status: 'OPEN' | 'CLOSED' | 'DRAFT' | string;
+	company?: Company | null;
+	eligibility?: {
+		id: string;
+		branches: string[];
+		graduationYears: number[];
+		minCgpa: number | null;
+	} | null;
+};
 
 export function Jobs() {
-	const jobs = useStore((s) => s.jobs);
-	const companies = useStore((s) => s.companies);
-	const setJobs = useStore((s) => s.setJobs);
-	const setCompanies = useStore((s) => s.setCompanies);
-	const updateJob = useStore((s) => s.updateJob);
-	const deleteJob = useStore((s) => s.deleteJob);
+	const [jobs, setJobs] = useState<Job[]>([]);
+	const [companies, setCompanies] = useState<Company[]>([]);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [statusFilter, setStatusFilter] = useState<'all' | 'OPEN' | 'CLOSED'>('all');
+	const [statusFilter, setStatusFilter] =
+		useState<'all' | 'OPEN' | 'CLOSED'>('all');
 	const [isLoading, setIsLoading] = useState(true);
 	const [editOpen, setEditOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
@@ -47,84 +65,116 @@ export function Jobs() {
 	const [deletingJob, setDeletingJob] = useState<Job | null>(null);
 	const navigate = useNavigate();
 
+	const getAuthHeader = () => {
+		// const token = localStorage.getItem('token');
+		const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI1NjBkNWQxYzI5ZWZjN2U4Nzc3ZCIsIm5hbWUiOiJBbmFueWEgUGF0aSIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzYzMzk5MTgyLCJleHAiOjE3NjU5OTExODJ9.7mShFVnyqVyU4gRCgwoWG6AFffOZlH23zm3z1XAj54Q"
+		return token
+			? {
+				Authorization: `Bearer ${token}`,
+			}
+			: {};
+	};
+
+	// fetch companies + jobs from backend
 	useEffect(() => {
-		// Ensure companies exist so the edit form's company select can display labels
-		if (companies.length === 0) {
-			const mockCompanies: Company[] = [
-				{
-					id: '1',
-					name: 'TechCorp Solutions',
-					description:
-						'Leading technology solutions provider specializing in software development and consulting services.',
-					website: 'https://techcorp.com',
-					industry: 'Technology',
-					location: 'San Francisco, CA',
-					createdAt: '2024-01-01T10:00:00Z',
-				},
-				{
-					id: '2',
-					name: 'Global Finance Inc',
-					description:
-						'International financial services company providing investment banking and wealth management solutions.',
-					website: 'https://globalfinance.com',
-					industry: 'Finance',
-					location: 'New York, NY',
-					createdAt: '2024-01-02T10:00:00Z',
-				},
-			];
-			setCompanies(mockCompanies);
-		}
+		const fetchAll = async () => {
+			try {
+				setIsLoading(true);
+				const headers = getAuthHeader();
 
-		if (jobs.length === 0) {
-			const mockJobs: Job[] = [
-				{
-					id: '1',
-					companyId: '1',
-					companyName: 'TechCorp Solutions',
-					title: 'Software Engineer',
-					description:
-						'We are looking for a talented Software Engineer to join our dynamic team.',
-					requirements: 'React, Node.js, SQL',
-					salary: '₹8.5 LPA',
-					location: 'Bangalore',
-					status: 'CLOSED',
-					deadline: '2025-12-05',
-					createdAt: '2025-01-20',
-				},
-				{
-					id: '2',
-					companyId: '2',
-					companyName: 'Global Finance Inc',
-					title: 'Data Analyst',
-					description:
-						'We are looking for a talented Data Analyst to join our dynamic team.',
-					requirements: 'SQL, Python, BI tools',
-					salary: '₹9.9 LPA',
-					location: 'Hyderabad',
-					status: 'OPEN',
-					deadline: '2025-11-24',
-					createdAt: '2025-02-10',
-				},
-			];
-			setJobs(mockJobs);
-		}
+				const [companiesRes, jobsRes] = await Promise.all([
+					axios.get<Company[]>(
+						'http://localhost:8000/api/v1/companies',
+						{ headers }
+					),
+					axios.get<Job[]>(
+						'http://localhost:8000/api/jobs',
+						{ headers }
+					),
+				]);
 
-		setIsLoading(false);
-	}, [companies.length, jobs.length, setCompanies, setJobs]);
+				setCompanies(companiesRes.data);
+				setJobs(jobsRes.data);
+			} catch (err) {
+				console.error('Failed to load jobs/companies', err);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchAll();
+	}, []);
 
 	const filtered = useMemo(
 		() =>
 			jobs.filter((j) => {
 				const matchesText =
-					j.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					j.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					j.location.toLowerCase().includes(searchTerm.toLowerCase());
-				const norm = (j.status as any) === 'ACTIVE' ? 'OPEN' : j.status; // normalize
+					j.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					j.companyName.toLowerCase().includes(searchTerm.toLowerCase());
+				const norm = (j.status as any) === 'ACTIVE' ? 'OPEN' : j.status;
 				const matchesStatus = statusFilter === 'all' || norm === statusFilter;
 				return matchesText && matchesStatus;
 			}),
 		[jobs, searchTerm, statusFilter]
 	);
+
+	const handleEditSubmit = async (data: JobFormValues) => {
+		if (!editingJob) return;
+
+		try {
+			const companyName =
+				companies.find((c) => c.id === data.companyId)?.name ||
+				editingJob.companyName;
+
+			const headers = getAuthHeader();
+
+			const res = await axios.put<{
+				message: string;
+				updated: Job;
+			}>(
+				`http://localhost:8000/api/jobs/${editingJob.id}`,
+				{
+					companyName,
+					jobTitle: data.jobTitle,
+					jobType: data.jobType,
+					description: data.description,
+					status: data.status,
+					testLink: data.testLink,
+					companyId: data.companyId,
+				},
+				{ headers }
+			);
+
+			const updatedJob = res.data.updated;
+
+			setJobs((prev) =>
+				prev.map((j) => (j.id === editingJob.id ? updatedJob : j))
+			);
+			setEditOpen(false);
+			setEditingJob(null);
+		} catch (err) {
+			console.error('Failed to update job', err);
+		}
+	};
+
+	const handleDelete = async () => {
+		if (!deletingJob) return;
+
+		try {
+			const headers = getAuthHeader();
+
+			await axios.delete(
+				`http://localhost:8000/api/jobs/${deletingJob.id}`,
+				{ headers }
+			);
+			setJobs((prev) => prev.filter((j) => j.id !== deletingJob.id));
+		} catch (err) {
+			console.error('Failed to delete job', err);
+		} finally {
+			setDeleteOpen(false);
+			setDeletingJob(null);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -136,16 +186,17 @@ export function Jobs() {
 
 	return (
 		<div className="space-y-6 animate-fade-in">
-			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-2xl font-semibold tracking-tight">Job Listings</h1>
-					<p className="text-sm text-muted-foreground">Manage job postings and opportunities</p>
+					<h1 className="text-2xl font-semibold tracking-tight">
+						Job Listings
+					</h1>
+					<p className="text-sm text-muted-foreground">
+						Manage job postings and opportunities
+					</p>
 				</div>
-				<AddJobModal />
 			</div>
 
-			{/* Filters row */}
 			<div className="flex items-center gap-4">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -156,7 +207,10 @@ export function Jobs() {
 						className="pl-10"
 					/>
 				</div>
-				<Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+				<Select
+					value={statusFilter}
+					onValueChange={(v: any) => setStatusFilter(v)}
+				>
 					<SelectTrigger className="w-40">
 						<SelectValue placeholder="All Status" />
 					</SelectTrigger>
@@ -168,16 +222,14 @@ export function Jobs() {
 				</Select>
 			</div>
 
-			{/* List (table-like) */}
 			<div className="rounded-md border bg-card overflow-hidden">
 				<table className="w-full text-sm">
 					<thead className="bg-muted/40">
 						<tr className="text-left">
 							<Th className="w-[32%]">Job</Th>
 							<Th>Company</Th>
-							<Th className="w-32">Location</Th>
-							<Th className="w-24">Salary</Th>
-							<Th className="w-32">Deadline</Th>
+							<Th className="w-32">Job Type</Th>
+							<Th className="w-40">Test Link</Th>
 							<Th className="w-28">Status</Th>
 							<Th className="text-right w-28">Actions</Th>
 						</tr>
@@ -186,17 +238,35 @@ export function Jobs() {
 						{filtered.map((job) => (
 							<tr key={job.id} className="border-t">
 								<Td>
-									<div className="font-medium">{job.title}</div>
+									<div className="font-medium">{job.jobTitle}</div>
 									<div className="text-xs text-muted-foreground line-clamp-1">
 										{job.description}
 									</div>
 								</Td>
 								<Td>{job.companyName}</Td>
-								<Td>{job.location}</Td>
-								<Td>{job.salary}</Td>
-								<Td>{new Date(job.deadline).toLocaleDateString()}</Td>
+								<Td>{job.jobType}</Td>
 								<Td>
-									<StatusPill status={(job.status as any) === 'ACTIVE' ? 'OPEN' : job.status} />
+									{job.testLink ? (
+										<a
+											href={job.testLink}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-primary underline text-xs"
+										>
+											Open test
+										</a>
+									) : (
+										<span className="text-muted-foreground text-xs">—</span>
+									)}
+								</Td>
+								<Td>
+									<StatusPill
+										status={
+											((job.status as any) === 'ACTIVE'
+												? 'OPEN'
+												: job.status) as 'OPEN' | 'CLOSED'
+										}
+									/>
 								</Td>
 								<Td className="text-right whitespace-nowrap">
 									<Button
@@ -246,23 +316,19 @@ export function Jobs() {
 					</DialogHeader>
 					{editingJob && (
 						<JobForm
-							key={`${editingJob.id}-${companies.length}`}
-							initialData={editingJob}
-							companies={companies}
-							onSubmit={(data) => {
-								const companyName = companies.find((c) => c.id === data.companyId)?.name || editingJob.companyName;
-								updateJob(editingJob.id, {
-									companyId: data.companyId,
-									companyName,
-									title: data.title,
-									description: data.description,
-									requirements: data.requirements,
-									salary: data.salary,
-									location: data.location,
-									deadline: data.deadline,
-								});
-								setEditOpen(false);
+							initialData={{
+								companyId: editingJob.companyId,
+								jobTitle: editingJob.jobTitle,
+								jobType: editingJob.jobType,
+								description: editingJob.description,
+								testLink: editingJob.testLink || '',
+								status:
+									((editingJob.status as any) === 'ACTIVE'
+										? 'OPEN'
+										: editingJob.status) as 'OPEN' | 'CLOSED',
 							}}
+							companies={companies}
+							onSubmit={handleEditSubmit}
 						/>
 					)}
 				</DialogContent>
@@ -274,18 +340,17 @@ export function Jobs() {
 						<AlertDialogTitle>Delete Job</AlertDialogTitle>
 						<AlertDialogDescription>
 							{deletingJob
-								? `This will permanently delete ${deletingJob.title}. This action cannot be undone.`
+								? `This will permanently delete ${deletingJob.jobTitle}. This action cannot be undone.`
 								: 'This will permanently delete the job.'}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel className="hover:scale-[1.02] transition">Cancel</AlertDialogCancel>
+						<AlertDialogCancel className="hover:scale-[1.02] transition">
+							Cancel
+						</AlertDialogCancel>
 						<AlertDialogAction
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition cursor-pointer"
-							onClick={() => {
-								if (deletingJob) deleteJob(deletingJob.id);
-								setDeleteOpen(false);
-							}}
+							onClick={handleDelete}
 						>
 							Delete
 						</AlertDialogAction>
@@ -296,10 +361,24 @@ export function Jobs() {
 	);
 }
 
-function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
-	return <th className={`px-4 py-3 text-xs font-medium text-muted-foreground ${className}`}>{children}</th>;
+function Th({
+	children,
+	className = '',
+}: React.PropsWithChildren<{ className?: string }>) {
+	return (
+		<th
+			className={`px-4 py-3 text-xs font-medium text-muted-foreground ${className}`}
+		>
+			{children}
+		</th>
+	);
 }
-function Td({ children, className = '', colSpan }: React.PropsWithChildren<{ className?: string; colSpan?: number }>) {
+
+function Td({
+	children,
+	className = '',
+	colSpan,
+}: React.PropsWithChildren<{ className?: string; colSpan?: number }>) {
 	return (
 		<td className={`px-4 py-3 align-middle ${className}`} colSpan={colSpan}>
 			{children}
@@ -313,7 +392,9 @@ function StatusPill({ status }: { status: 'OPEN' | 'CLOSED' }) {
 		CLOSED: 'bg-muted text-muted-foreground',
 	};
 	return (
-		<span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${map[status]}`}>
+		<span
+			className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${map[status]}`}
+		>
 			{status}
 		</span>
 	);
