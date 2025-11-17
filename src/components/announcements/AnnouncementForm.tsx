@@ -1,10 +1,6 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { announcementSchema, type AnnouncementFormData } from '../../lib/schemas';
-import { Button } from '../ui/button';
+import { useState } from 'react';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
 import {
   Select,
   SelectContent,
@@ -12,113 +8,138 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import type { Announcement } from '../../lib/types';
 
-interface AnnouncementFormProps {
-  onSubmit: (data: AnnouncementFormData) => void;
-  initialData?: Announcement;
-  isLoading?: boolean;
-}
+export type AnnouncementFormValues = {
+  title: string;
+  description: string;
+  audience: 'ALL' | 'BRANCH' | 'BATCH';
+  branches: string[];
+  graduationYears: number[];
+};
 
-export function AnnouncementForm({ onSubmit, initialData, isLoading }: AnnouncementFormProps) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<AnnouncementFormData>({
-    resolver: zodResolver(announcementSchema),
-    defaultValues: initialData
-      ? {
-          title: initialData.title,
-          content: initialData.content,
-          target: initialData.target,
-          targetValue: initialData.targetValue || '',
-        }
-      : undefined,
-  });
+type Props = {
+  initialData?: AnnouncementFormValues;
+  onSubmit: (data: AnnouncementFormValues) => void;
+};
 
-  const target = watch('target');
+const empty: AnnouncementFormValues = {
+  title: '',
+  description: '',
+  audience: 'ALL',
+  branches: [],
+  graduationYears: [],
+};
+
+export function AnnouncementForm({ initialData, onSubmit }: Props) {
+  const [form, setForm] = useState<AnnouncementFormValues>(initialData || empty);
+  const [branchesText, setBranchesText] = useState(
+    (initialData?.branches ?? []).join(', ')
+  );
+  const [yearsText, setYearsText] = useState(
+    (initialData?.graduationYears ?? []).join(', ')
+  );
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAudienceChange = (value: 'ALL' | 'BRANCH' | 'BATCH') => {
+    setForm((prev) => ({ ...prev, audience: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const branches =
+      branchesText.trim().length === 0
+        ? []
+        : branchesText.split(',').map((b) => b.trim());
+
+    const graduationYears =
+      yearsText.trim().length === 0
+        ? []
+        : yearsText.split(',').map((y) => Number(y.trim()));
+
+    onSubmit({
+      ...form,
+      branches,
+      graduationYears,
+    });
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div>
+        <label className="block text-sm font-medium mb-1">Title</label>
         <Input
-          id="title"
-          {...register('title')}
-          placeholder="Campus Placement Drive 2025"
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+          required
         />
-        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          {...register('content')}
-          placeholder="Enter announcement details..."
-          rows={6}
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          rows={4}
+          className="w-full rounded-md border px-3 py-2 text-sm"
         />
-        {errors.content && <p className="text-sm text-destructive">{errors.content.message}</p>}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="target">Target Audience</Label>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Audience</label>
           <Select
-            value={target}
-            onValueChange={(value : any) => setValue('target', value as any, { shouldValidate: true })}
+            value={form.audience}
+            onValueChange={(v) => handleAudienceChange(v as any)}
           >
-            <SelectTrigger id="target">
-              <SelectValue placeholder="Select target" />
+            <SelectTrigger>
+              <SelectValue placeholder="Select audience" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Students</SelectItem>
-              <SelectItem value="BRANCH">Specific Branch</SelectItem>
-              <SelectItem value="BATCH">Specific Batch</SelectItem>
+              <SelectItem value="BRANCH">By Branch</SelectItem>
+              <SelectItem value="BATCH">By Batch</SelectItem>
             </SelectContent>
           </Select>
-          {errors.target && <p className="text-sm text-destructive">{errors.target.message}</p>}
         </div>
 
-        {target && target !== 'ALL' && (
-          <div className="space-y-2">
-            <Label htmlFor="targetValue">
-              {target === 'BRANCH' ? 'Branch' : 'Batch Year'}
-            </Label>
-            {target === 'BRANCH' ? (
-              <Select
-                value={watch('targetValue')}
-                onValueChange={(value : any) => setValue('targetValue', value)}
-              >
-                <SelectTrigger id="targetValue">
-                  <SelectValue placeholder="Select branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CSE">CSE</SelectItem>
-                  <SelectItem value="ECE">ECE</SelectItem>
-                  <SelectItem value="EEE">EEE</SelectItem>
-                  <SelectItem value="MECH">MECH</SelectItem>
-                  <SelectItem value="CIVIL">CIVIL</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                id="targetValue"
-                {...register('targetValue')}
-                placeholder="2022"
-              />
-            )}
+        {form.audience === 'BRANCH' && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">
+              Branches (comma separated)
+            </label>
+            <Input
+              value={branchesText}
+              onChange={(e) => setBranchesText(e.target.value)}
+              placeholder="CSE, IT, ECE"
+            />
+          </div>
+        )}
+
+        {form.audience === 'BATCH' && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">
+              Graduation Years (comma separated)
+            </label>
+            <Input
+              value={yearsText}
+              onChange={(e) => setYearsText(e.target.value)}
+              placeholder="2025, 2026"
+            />
           </div>
         )}
       </div>
 
-      <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : initialData ? 'Update Announcement' : 'Create Announcement'}
-        </Button>
+      <div className="flex justify-end">
+        <Button type="submit">Save</Button>
       </div>
     </form>
   );

@@ -75,7 +75,7 @@ export function Jobs() {
 			: {};
 	};
 
-	// fetch companies + jobs from backend
+	
 	useEffect(() => {
 		const fetchAll = async () => {
 			try {
