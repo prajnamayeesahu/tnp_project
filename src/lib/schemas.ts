@@ -90,3 +90,5 @@ export type StudentFormData = z.infer<typeof studentSchema>;
 export type CompanyFormData = z.infer<typeof companySchema>;
 export type JobFormData = z.infer<typeof jobSchema>;
 export type AnnouncementFormData = z.infer<typeof announcementSchema>;
+
+

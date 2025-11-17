@@ -76,3 +76,4 @@ export interface DashboardStats {
   profileCompletion: number;
   placedStudents: number;
 }
+
