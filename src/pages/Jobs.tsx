@@ -77,6 +77,8 @@ export function Jobs() {
 			: {};
 	};
 
+	const URL = process.env.BACKEND_URI;
+
 
 	useEffect(() => {
 		const fetchAll = async () => {
@@ -86,11 +88,11 @@ export function Jobs() {
 
 				const [companiesRes, jobsRes] = await Promise.all([
 					axios.get<Company[]>(
-						'http://localhost:8000/api/v1/companies',
+						`${URL}/api/v1/companies`,
 						{ headers }
 					),
 					axios.get<Job[]>(
-						'http://localhost:8000/api/jobs',
+						`${URL}/api/jobs`,
 						{ headers }
 					),
 				]);
@@ -134,7 +136,7 @@ export function Jobs() {
 				message: string;
 				updated: Job;
 			}>(
-				`http://localhost:8000/api/jobs/${editingJob.id}`,
+				`${URL}/api/jobs/${editingJob.id}`,
 				{
 					companyName,
 					jobTitle: data.jobTitle,
@@ -166,7 +168,7 @@ export function Jobs() {
 			const headers = getAuthHeader();
 
 			await axios.delete(
-				`http://localhost:8000/api/jobs/${deletingJob.id}`,
+				`${URL}/api/jobs/${deletingJob.id}`,
 				{ headers }
 			);
 			setJobs((prev) => prev.filter((j) => j.id !== deletingJob.id));

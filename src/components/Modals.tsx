@@ -17,7 +17,7 @@ import {
 } from './announcements/AnnouncementForm';
 import { Plus, UserPlus, Building2, Briefcase, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
-import { useStore } from '../lib/store'; 
+import { useStore } from '../lib/store';
 import type { StudentFormData } from '../lib/schemas';
 import type { Student } from '../lib/types';
 import axios from 'axios';
@@ -28,6 +28,7 @@ const getAuthHeader = () => {
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI1NjBkNWQxYzI5ZWZjN2U4Nzc3ZCIsIm5hbWUiOiJBbmFueWEgUGF0aSIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzYzMzk5MTgyLCJleHAiOjE3NjU5OTExODJ9.7mShFVnyqVyU4gRCgwoWG6AFffOZlH23zm3z1XAj54Q"
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
+const URL = process.env.BACKEND_URI;
 
 // =======================
 // Student Modal (local store hi rehne de abhi)
@@ -100,7 +101,7 @@ export function AddCompanyModal() {
             const headers = getAuthHeader();
 
             await axios.post(
-                'http://localhost:8000/api/v1/companies',
+                `${URL}/api/v1/companies`,
                 {
                     name: data.name,
                     description: data.description,
@@ -172,7 +173,7 @@ export function AddJobModal() {
                 setLoadingCompanies(true);
                 const headers = getAuthHeader();
                 const res = await axios.get<CompanyOption[]>(
-                    'http://localhost:8000/api/v1/companies',
+                    `${URL}/api/v1/companies`,
                     { headers }
                 );
                 setCompanies(res.data);
@@ -193,7 +194,7 @@ export function AddJobModal() {
             const companyName = selectedCompany?.name || 'Unknown Company';
 
             await axios.post(
-                'http://localhost:8000/api/v1/jobs',
+                `${URL}/api/v1/jobs`,
                 {
                     companyId: data.companyId,
                     companyName,
@@ -272,7 +273,7 @@ export function AddAnnouncementModal() {
             }
 
             await axios.post(
-                'http://localhost:8000/api/v1/announcements',
+                `${URL}/api/v1/announcements`,
                 {
                     title: data.title,
                     description: data.description,

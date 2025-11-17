@@ -32,12 +32,14 @@ export function Companies() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
+    const URL = process.env.BACKEND_URI;
+
     // GET ALL COMPANIES
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
                 setIsLoading(true);
-                const res = await axios.get<Company[]>('http://localhost:8000/api/v1/companies');
+                const res = await axios.get<Company[]>(`${URL}/api/v1/companies`);
                 setCompanies(res.data);
             } catch (err) {
                 console.error('Failed to fetch companies', err);
@@ -55,7 +57,7 @@ export function Companies() {
 
         try {
             const res = await axios.put<Company>(
-                `http://localhost:8000/api/v1/companies/${editingCompany.id}`,
+                `${URL}/api/v1/companies/${editingCompany.id}`,
                 {
                     name: data.name,
                     description: data.description,
@@ -82,7 +84,7 @@ export function Companies() {
 
         try {
             await axios.delete(
-                `http://localhost:8000/api/v1/companies/${deletingCompany.id}`
+                `${URL}/api/v1/companies/${deletingCompany.id}`
             );
             setCompanies((prev) =>
                 prev.filter((c) => c.id !== deletingCompany.id)

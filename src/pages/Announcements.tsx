@@ -58,13 +58,15 @@ export function Announcements() {
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
+    const URL = process.env.BACKEND_URI;
+
     useEffect(() => {
         const fetchAnnouncements = async () => {
             try {
                 setIsLoading(true);
                 const headers = getAuthHeader();
                 const res = await axios.get<{ data: Announcement[] }>(
-                    'http://localhost:8000/api/v1/announcements',
+                    `${URL}/api/v1/announcements`,
                     { headers }
                 );
                 setAnnouncements(res.data.data);
@@ -120,7 +122,7 @@ export function Announcements() {
                 message: string;
                 data: Announcement;
             }>(
-                `http://localhost:8000/api/v1/announcements/${editingAnnouncement.id}`,
+                `${URL}/api/v1/announcements/${editingAnnouncement.id}`,
                 {
                     title: data.title,
                     description: data.description,
@@ -148,7 +150,7 @@ export function Announcements() {
         try {
             const headers = getAuthHeader();
             await axios.delete(
-                `http://localhost:8000/api/v1/announcements/${deletingAnnouncement.id}`,
+                `${URL}/api/v1/announcements/${deletingAnnouncement.id}`,
                 { headers }
             );
             setAnnouncements((prev) =>
