@@ -1,10 +1,6 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { jobSchema, type JobFormData } from '../../lib/schemas';
-import { Button } from '../ui/button';
+import { useState } from 'react';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
 import {
   Select,
   SelectContent,
@@ -12,123 +8,133 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import type { Job, Company } from '../../lib/types';
 
-interface JobFormProps {
-  onSubmit: (data: JobFormData) => void;
-  initialData?: Job;
-  companies: Company[];
-  isLoading?: boolean;
-}
+export type JobFormValues = {
+  companyId: string;
+  jobTitle: string;
+  jobType: string;
+  description: string;
+  testLink?: string;
+  status: 'OPEN' | 'CLOSED';
+};
 
-export function JobForm({ onSubmit, initialData, companies, isLoading }: JobFormProps) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<JobFormData>({
-    resolver: zodResolver(jobSchema),
-    defaultValues: initialData
-      ? {
-          companyId: initialData.companyId,
-          title: initialData.title,
-          description: initialData.description,
-          requirements: initialData.requirements,
-          salary: initialData.salary,
-          location: initialData.location,
-          deadline: initialData.deadline,
-        }
-      : undefined,
-  });
+type CompanyOption = {
+  id: string;
+  name: string;
+};
 
-  const companyId = watch('companyId');
+type JobFormProps = {
+  initialData?: JobFormValues;
+  companies: CompanyOption[];
+  onSubmit: (data: JobFormValues) => void;
+};
+
+const emptyForm: JobFormValues = {
+  companyId: '',
+  jobTitle: '',
+  jobType: '',
+  description: '',
+  testLink: '',
+  status: 'OPEN',
+};
+
+export function JobForm({ initialData, companies, onSubmit }: JobFormProps) {
+  const [form, setForm] = useState<JobFormValues>(initialData || emptyForm);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelect = (name: keyof JobFormValues, value: string) => {
+    setForm((prev) => ({ ...prev, [name]: value as any }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(form);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="companyId">Company</Label>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Company</label>
           <Select
-            value={companyId}
-            onValueChange={(value: any) => setValue('companyId', value, { shouldValidate: true })}
+            value={form.companyId}
+            onValueChange={(v) => handleSelect('companyId', v)}
           >
-            <SelectTrigger id="companyId">
-              <SelectValue placeholder="Select a company" />
+            <SelectTrigger>
+              <SelectValue placeholder="Select company" />
             </SelectTrigger>
             <SelectContent>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
+              {companies.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.companyId && (
-            <p className="text-sm text-destructive">{errors.companyId.message}</p>
-          )}
         </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="title">Job Title</Label>
-          <Input id="title" {...register('title')} placeholder="Software Engineer" />
-          {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="salary">Salary</Label>
-          <Input id="salary" {...register('salary')} placeholder="₹8-12 LPA" />
-          {errors.salary && <p className="text-sm text-destructive">{errors.salary.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input id="location" {...register('location')} placeholder="Bangalore, India" />
-          {errors.location && (
-            <p className="text-sm text-destructive">{errors.location.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="deadline">Application Deadline</Label>
-          <Input id="deadline" type="date" {...register('deadline')} />
-          {errors.deadline && (
-            <p className="text-sm text-destructive">{errors.deadline.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="description">Job Description</Label>
-          <Textarea
-            id="description"
-            {...register('description')}
-            placeholder="Describe the role and responsibilities..."
-            rows={4}
+        <div>
+          <label className="block text-sm font-medium mb-1">Job Type</label>
+          <Input
+            name="jobType"
+            value={form.jobType}
+            onChange={handleChange}
+            placeholder="Full-time / Internship / etc"
+            required
           />
-          {errors.description && (
-            <p className="text-sm text-destructive">{errors.description.message}</p>
-          )}
         </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="requirements">Requirements</Label>
-          <Textarea
-            id="requirements"
-            {...register('requirements')}
-            placeholder="List the skills and qualifications required..."
-            rows={4}
+        <div>
+          <label className="block text-sm font-medium mb-1">Status</label>
+          <Select
+            value={form.status}
+            onValueChange={(v) => handleSelect('status', v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="OPEN">OPEN</SelectItem>
+              <SelectItem value="CLOSED">CLOSED</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Test Link</label>
+          <Input
+            name="testLink"
+            value={form.testLink || ''}
+            onChange={handleChange}
+            placeholder="https://..."
           />
-          {errors.requirements && (
-            <p className="text-sm text-destructive">{errors.requirements.message}</p>
-          )}
         </div>
       </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Job Title</label>
+        <Input
+          name="jobTitle"
+          value={form.jobTitle}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          className="w-full rounded-md border px-3 py-2 text-sm"
+          rows={4}
+        />
+      </div>
 
-      <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : initialData ? 'Update Job' : 'Create Job'}
-        </Button>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="submit">Save</Button>
       </div>
     </form>
   );

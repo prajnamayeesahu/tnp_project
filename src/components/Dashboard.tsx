@@ -55,9 +55,9 @@ export function Dashboard() {
                     <CardContent className="p-6">
                         <h3 className="text-sm font-semibold mb-4">Quick Actions</h3>
                         <div className="space-y-2">
-                            <ActionRow label="View All Students" icon={<Users className="h-4 w-4" />} onClick={() => navigate('/students')} />
-                            <ActionRow label="Manage Companies" icon={<Building2 className="h-4 w-4" />} onClick={() => navigate('/companies')} />
-                            <ActionRow label="Post New Job" icon={<Briefcase className="h-4 w-4" />} onClick={() => navigate('/jobs')} />
+                            <ActionRow label="View All Students" icon={<Users className="h-4 w-4 cursor-pointer" />} onClick={() => navigate('/students')} />
+                            <ActionRow label="Manage Companies" icon={<Building2 className="h-4 w-4 cursor-pointer" />} onClick={() => navigate('/companies')} />
+                            <ActionRow label="Post New Job" icon={<Briefcase className="h-4 w-4 cursor-pointer" />} onClick={() => navigate('/jobs')} />
                         </div>
                     </CardContent>
                 </Card>
@@ -94,7 +94,7 @@ function ActionRow({ label, icon, onClick }: { label: string; icon: React.ReactN
     return (
         <button
             onClick={onClick}
-            className="w-full flex items-center justify-between rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition"
+            className="cursor-pointer w-full flex items-center justify-between rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition"
         >
             <span>{label}</span>
             <span className="text-muted-foreground">{icon}</span>

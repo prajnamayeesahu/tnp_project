@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { AddCompanyModal } from '../components/Modals';
-import { useStore } from '../lib/store';
+import { CompanyForm, CompanyFormValues } from '../components/companies/CompanyForm';
 import type { Company } from '../lib/types';
 import { Search, Building2, Edit, Trash2, ExternalLink } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
-    DialogTitle
+    DialogTitle,
 } from '../components/ui/dialog';
 import {
     AlertDialog,
@@ -19,15 +18,13 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogCancel,
-    AlertDialogAction
+    AlertDialogAction,
 } from '../components/ui/alert-dialog';
-import { CompanyForm } from '../components/companies/CompanyForm';
+import axios from 'axios';
+import { AddCompanyModal } from '../components/Modals';
 
 export function Companies() {
-    const companies = useStore((state) => state.companies);
-    const setCompanies = useStore((state) => state.setCompanies);
-    const deleteCompany = useStore((state) => state.deleteCompany);
-    const updateCompany = useStore((state) => state.updateCompany);
+    const [companies, setCompanies] = useState<Company[]>([]);
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -35,39 +32,85 @@ export function Companies() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Load initial mock data if store is empty
-        if (companies.length === 0) {
-            const mockCompanies: Company[] = [
-                {
-                    id: '1',
-                    name: 'TechCorp Solutions',
-                    description: 'Leading technology solutions provider specializing in software development and consulting services.',
-                    website: 'https://techcorp.com',
-                    industry: 'Technology',
-                    location: 'San Francisco, CA',
-                    createdAt: '2024-01-01T10:00:00Z'
-                },
-                {
-                    id: '2',
-                    name: 'Global Finance Inc',
-                    description: 'International financial services company providing investment banking and wealth management solutions.',
-                    website: 'https://globalfinance.com',
-                    industry: 'Finance',
-                    location: 'New York, NY',
-                    createdAt: '2024-01-02T10:00:00Z'
-                }
-            ];
-            setCompanies(mockCompanies);
-        }
-        setIsLoading(false);
-    }, [companies.length, setCompanies]);
+    const URL = import.meta.env.VITE_BACKEND_URI;
 
-    const filteredCompanies = companies.filter(company =>
-        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.industry.toLowerCase().includes(searchTerm.toLowerCase())
+    // GET ALL COMPANIES
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            try {
+                setIsLoading(true);
+                const res = await axios.get<Company[]>(`${URL}/api/v1/companies`);
+                setCompanies(res.data);
+            } catch (err) {
+                console.error('Failed to fetch companies', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCompanies();
+    }, []);
+
+    // UPDATE
+    const handleEditSubmit = async (data: CompanyFormValues) => {
+        if (!editingCompany) return;
+
+        try {
+            const res = await axios.put<Company>(
+                `${URL}/api/v1/companies/${editingCompany.id}`,
+                {
+                    name: data.name,
+                    description: data.description,
+                    industry: data.industry,
+                    website: data.website,
+                    contactPerson: data.contactPerson,
+                    contactEmail: data.contactEmail,
+                }
+            );
+
+            setCompanies((prev) =>
+                prev.map((c) => (c.id === editingCompany.id ? res.data : c))
+            );
+            setEditOpen(false);
+            setEditingCompany(null);
+        } catch (err) {
+            console.error('Failed to update company', err);
+        }
+    };
+
+    // DELETE
+    const handleDelete = async () => {
+        if (!deletingCompany) return;
+
+        try {
+            await axios.delete(
+                `${URL}/api/v1/companies/${deletingCompany.id}`
+            );
+            setCompanies((prev) =>
+                prev.filter((c) => c.id !== deletingCompany.id)
+            );
+        } catch (err) {
+            console.error('Failed to delete company', err);
+        } finally {
+            setDeleteOpen(false);
+            setDeletingCompany(null);
+        }
+    };
+
+    const filteredCompanies = companies.filter((company) =>
+        [
+            company.name,
+            company.description,
+            company.industry,
+            company.website,
+            // @ts-expect-error – depends on your Company type, adjust if needed
+            company.contactPerson,
+            // @ts-expect-error – depends on your Company type, adjust if needed
+            company.contactEmail,
+        ]
+            .join(' ')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
     );
 
     if (isLoading) {
@@ -83,9 +126,11 @@ export function Companies() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Companies</h1>
-                    <p className="text-muted-foreground">Manage company profiles and partnerships</p>
+                    <p className="text-muted-foreground">
+                        Manage company profiles and partnerships
+                    </p>
                 </div>
-                <AddCompanyModal />
+                <AddCompanyModal/>
             </div>
 
             <div className="flex items-center gap-4">
@@ -104,22 +149,27 @@ export function Companies() {
                 <table className="w-full text-sm">
                     <thead className="bg-muted/40">
                         <tr className="text-left">
-                            <Th className="w-[45%]">Company Name</Th>
-                            <Th className="w-48">Industry</Th>
-                            <Th className="w-36">Location</Th>
-                            <Th className="w-28">Website</Th>
+                            <Th className="w-[30%]">Company Name</Th>
+                            <Th className="w-40">Industry</Th>
+                            <Th className="w-40">Website</Th>
+                            <Th className="w-40">Contact Person</Th>
+                            <Th className="w-48">Contact Email</Th>
                             <Th className="text-right w-28">Actions</Th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredCompanies.map((company) => (
-                            <tr key={company.id} className="border-t hover:bg-muted/50 transition-colors">
+                            <tr
+                                key={company.id}
+                                className="border-t hover:bg-muted/50 transition-colors"
+                            >
                                 <Td>
                                     <div className="font-medium">{company.name}</div>
-                                    <div className="text-xs text-muted-foreground line-clamp-1">{company.description}</div>
+                                    <div className="text-xs text-muted-foreground line-clamp-1">
+                                        {company.description}
+                                    </div>
                                 </Td>
                                 <Td>{company.industry}</Td>
-                                <Td>{company.location}</Td>
                                 <Td>
                                     {company.website ? (
                                         <a
@@ -134,11 +184,15 @@ export function Companies() {
                                         <span className="text-muted-foreground">—</span>
                                     )}
                                 </Td>
+                                {/* @ts-expect-error – adjust if your Company type already has these */}
+                                <Td>{company.contactPerson || '—'}</Td>
+                                {/* @ts-expect-error */}
+                                <Td>{company.contactEmail || '—'}</Td>
                                 <Td className="text-right whitespace-nowrap">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                                         onClick={() => {
                                             setEditingCompany(company);
                                             setEditOpen(true);
@@ -150,7 +204,7 @@ export function Companies() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-red-600 hover:text-red-700"
+                                        className="h-8 w-8 text-red-600 hover:text-red-700 cursor-pointer"
                                         onClick={() => {
                                             setDeletingCompany(company);
                                             setDeleteOpen(true);
@@ -173,17 +227,17 @@ export function Companies() {
                     </DialogHeader>
                     {editingCompany && (
                         <CompanyForm
-                            initialData={editingCompany}
-                            onSubmit={(data) => {
-                                updateCompany(editingCompany.id, {
-                                    name: data.name,
-                                    description: data.description,
-                                    website: data.website,
-                                    industry: data.industry,
-                                    location: data.location,
-                                });
-                                setEditOpen(false);
+                            initialData={{
+                                name: editingCompany.name,
+                                description: editingCompany.description,
+                                industry: editingCompany.industry,
+                                website: editingCompany.website ?? '',
+                                // @ts-expect-error – depends on your type
+                                contactPerson: editingCompany.contactPerson ?? '',
+                                // @ts-expect-error
+                                contactEmail: editingCompany.contactEmail ?? '',
                             }}
+                            onSubmit={handleEditSubmit}
                         />
                     )}
                 </DialogContent>
@@ -200,13 +254,12 @@ export function Companies() {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="hover:scale-[1.02] transition">Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="hover:scale-[1.02] transition">
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition"
-                            onClick={() => {
-                                if (deletingCompany) deleteCompany(deletingCompany.id);
-                                setDeleteOpen(false);
-                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02] transition cursor-pointer"
+                            onClick={handleDelete}
                         >
                             Delete
                         </AlertDialogAction>
@@ -218,17 +271,33 @@ export function Companies() {
                 <div className="text-center py-12">
                     <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">No companies found</h3>
-                    <p className="text-muted-foreground">Try adjusting your search terms or add a new company.</p>
+                    <p className="text-muted-foreground">
+                        Try adjusting your search terms or add a new company.
+                    </p>
                 </div>
             )}
         </div>
     );
 }
 
-function Th({ children, className = '' }: React.PropsWithChildren<{ className?: string }>) {
-    return <th className={`px-4 py-3 text-xs font-medium text-muted-foreground ${className}`}>{children}</th>;
+function Th({
+    children,
+    className = '',
+}: React.PropsWithChildren<{ className?: string }>) {
+    return (
+        <th
+            className={`px-4 py-3 text-xs font-medium text-muted-foreground ${className}`}
+        >
+            {children}
+        </th>
+    );
 }
-function Td({ children, className = '', colSpan }: React.PropsWithChildren<{ className?: string; colSpan?: number }>) {
+
+function Td({
+    children,
+    className = '',
+    colSpan,
+}: React.PropsWithChildren<{ className?: string; colSpan?: number }>) {
     return (
         <td className={`px-4 py-3 align-middle ${className}`} colSpan={colSpan}>
             {children}

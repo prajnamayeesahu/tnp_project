@@ -1,133 +1,116 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { companySchema, type CompanyFormData } from '../../lib/schemas';
-import { Button } from '../ui/button';
+import { useState } from 'react';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import type { Company } from '../../lib/types';
+import { Button } from '../ui/button';
 
-interface CompanyFormProps {
-  onSubmit: (data: CompanyFormData) => void;
-  initialData?: Company;
-  isLoading?: boolean;
-}
+export type CompanyFormValues = {
+  name: string;
+  description: string;
+  industry: string;
+  website: string;
+  contactPerson: string;
+  contactEmail: string;
+};
 
-export function CompanyForm({ onSubmit, initialData, isLoading }: CompanyFormProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CompanyFormData>({
-    resolver: zodResolver(companySchema),
-    defaultValues: initialData
-      ? {
-        name: initialData.name,
-        description: initialData.description,
-        website: initialData.website || '',
-        industry: initialData.industry,
-        location: initialData.location,
-        email: initialData.email || '',
-        phone: initialData.phone || '',
-        address: initialData.address || '',
-      }
-      : undefined,
-  });
+type CompanyFormProps = {
+  initialData?: CompanyFormValues;
+  onSubmit: (data: CompanyFormValues) => void;
+};
+
+const emptyForm: CompanyFormValues = {
+  name: '',
+  description: '',
+  industry: '',
+  website: '',
+  contactPerson: '',
+  contactEmail: '',
+};
+
+export function CompanyForm({ initialData, onSubmit }: CompanyFormProps) {
+  const [form, setForm] = useState<CompanyFormValues>(initialData || emptyForm);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(form);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="name">Company Name</Label>
-          <Input id="name" {...register('name')} placeholder="Tech Corp" />
-          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="industry">Industry</Label>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
           <Input
-            id="industry"
-            {...register('industry')}
-            placeholder="Information Technology"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
           />
-          {errors.industry && (
-            <p className="text-sm text-destructive">{errors.industry.message}</p>
-          )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input id="location" {...register('location')} placeholder="Bangalore, India" />
-          {errors.location && (
-            <p className="text-sm text-destructive">{errors.location.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="website">Website (Optional)</Label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Industry</label>
           <Input
-            id="website"
-            type="url"
-            {...register('website')}
-            placeholder="https://example.com"
+            name="industry"
+            value={form.industry}
+            onChange={handleChange}
+            required
           />
-          {errors.website && <p className="text-sm text-destructive">{errors.website.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Website</label>
           <Input
-            id="email"
+            name="website"
+            value={form.website}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Contact Person
+          </label>
+          <Input
+            name="contactPerson"
+            value={form.contactPerson}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Contact Email
+          </label>
+          <Input
+            name="contactEmail"
             type="email"
-            autoComplete="email"
-            {...register('email')}
-            placeholder="hr@company.com"
+            value={form.contactEmail}
+            onChange={handleChange}
+            required
           />
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            inputMode="tel"
-            pattern="^[0-9()+\-\s]{10,20}$"
-            title="Enter 10–15 digits (spaces, +, - and parentheses allowed)"
-            {...register('phone')}
-            placeholder="+1 (555) 012-3456"
-          />
-          {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="address">Address</Label>
-          <Textarea
-            id="address"
-            rows={3}
-            {...register('address')}
-            placeholder="Company address, city, country"
-          />
-          {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            {...register('description')}
-            placeholder="Brief description about the company..."
-            rows={4}
-          />
-          {errors.description && (
-            <p className="text-sm text-destructive">{errors.description.message}</p>
-          )}
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : initialData ? 'Update Company' : 'Add Company'}
-        </Button>
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          className="w-full rounded-md border px-3 py-2 text-sm"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="submit">Save</Button>
       </div>
     </form>
   );
