@@ -58,7 +58,7 @@ export function Announcements() {
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
-    const URL = process.env.BACKEND_URI;
+    const URL = import.meta.env.VITE_BACKEND_URI;
 
     useEffect(() => {
         const fetchAnnouncements = async () => {

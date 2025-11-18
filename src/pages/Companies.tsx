@@ -32,7 +32,7 @@ export function Companies() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
-    const URL = process.env.BACKEND_URI;
+    const URL = import.meta.env.VITE_BACKEND_URI;
 
     // GET ALL COMPANIES
     useEffect(() => {

@@ -28,7 +28,7 @@ const getAuthHeader = () => {
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI1NjBkNWQxYzI5ZWZjN2U4Nzc3ZCIsIm5hbWUiOiJBbmFueWEgUGF0aSIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzYzMzk5MTgyLCJleHAiOjE3NjU5OTExODJ9.7mShFVnyqVyU4gRCgwoWG6AFffOZlH23zm3z1XAj54Q"
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
-
+const URL = import.meta.env.VITE_BACKEND_URI;
 
 // =======================
 // Student Modal (local store hi rehne de abhi)
@@ -37,7 +37,6 @@ export function AddStudentModal() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const addStudent = useStore((state) => state.addStudent);
-    // const URL = process.env.BACKEND_URI;
 
     const handleSubmit = async (data: StudentFormData) => {
         setIsLoading(true);
@@ -95,7 +94,6 @@ export function AddStudentModal() {
 export function AddCompanyModal() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const URL = process.env.BACKEND_URI;
 
     const handleSubmit = async (data: CompanyFormValues) => {
         setIsLoading(true);
@@ -166,7 +164,6 @@ export function AddJobModal() {
     const [isLoading, setIsLoading] = useState(false);
     const [companies, setCompanies] = useState<CompanyOption[]>([]);
     const [loadingCompanies, setLoadingCompanies] = useState(false);
-    const URL = process.env.BACKEND_URI;
 
     // load companies for select
     useEffect(() => {
@@ -262,7 +259,6 @@ export function AddJobModal() {
 export function AddAnnouncementModal() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const URL = process.env.BACKEND_URI;
 
     const handleSubmit = async (data: AnnouncementFormValues) => {
         setIsLoading(true);
