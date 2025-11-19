@@ -10,7 +10,10 @@ import { Announcements } from './pages/Announcements';
 import { StudentAnalytics } from './pages/analytics/StudentAnalytics';
 import { JobAnalytics } from './pages/analytics/JobAnalytics';
 import { Toaster } from './components/ui/sonner';
-
+import { Login } from './pages/auth/Login';
+import { Signup } from './pages/auth/Signup';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { StudentHome } from './pages/StudentHome';
 // Create a client for React Query
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,8 +30,25 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen bg-background">
           <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<Dashboard />} />
+            {/* Default to login on app start */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+
+            {/* Temporary student placeholder */}
+            <Route path="/student" element={<StudentHome />} />
+
+            {/* Admin-protected routes */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/students" element={<Students />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/jobs" element={<Jobs />} />
@@ -36,9 +56,10 @@ export default function App() {
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/analytics/students" element={<StudentAnalytics />} />
               <Route path="/analytics/jobs/:id" element={<JobAnalytics />} />
-              {/* Catch-all route for unmatched paths */}
-              <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
+
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
           <Toaster position="top-right" />
         </div>

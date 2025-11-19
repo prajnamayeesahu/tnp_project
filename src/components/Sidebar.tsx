@@ -7,12 +7,12 @@ import {
   FileText,
   Megaphone,
   BarChart3,
-  GraduationCap
+  GraduationCap,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Users, label: 'Students', path: '/students' },
   { icon: Building2, label: 'Companies', path: '/companies' },
   { icon: Briefcase, label: 'Jobs', path: '/jobs' },
@@ -37,7 +37,8 @@ export function Sidebar() {
       <nav className="flex-1 p-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path ||
+          const isActive =
+            location.pathname === item.path ||
             (item.path === '/analytics/students' && location.pathname.startsWith('/analytics'));
 
           return (
@@ -47,17 +48,19 @@ export function Sidebar() {
               className={cn(
                 'sidebar-link group flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200 hover:bg-accent/70 hover:text-foreground relative',
                 'border-b last:border-b-0 border-border',
-                isActive && 'bg-accent text-accent-foreground shadow-sm'
+                isActive && 'bg-accent text-accent-foreground shadow-sm',
               )}
             >
               <span
                 className={cn(
                   'absolute left-0 top-0 h-full w-[3px] rounded-r-sm bg-transparent transition-colors',
-                  isActive ? 'bg-primary' : 'group-hover:bg-primary/40'
+                  isActive ? 'bg-primary' : 'group-hover:bg-primary/40',
                 )}
               />
               <Icon className="h-5 w-5 transition-transform group-hover:translate-x-[2px]" />
-              <span className="transition-transform group-hover:translate-x-[2px]">{item.label}</span>
+              <span className="transition-transform group-hover:translate-x-[2px]">
+                {item.label}
+              </span>
             </Link>
           );
         })}
