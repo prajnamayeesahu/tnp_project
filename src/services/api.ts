@@ -22,7 +22,7 @@ import {
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URI || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_BACKEND_URI || 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -319,7 +319,7 @@ export const jobsAPI = {
 export const applicationsAPI = {
   getAll: async (): Promise<Application[]> => {
     try {
-      const response = await api.get('/applications')
+      const response = await api.get('/api/v1/applications')
       return response.data
     } catch (error) {
       console.log('Using mock data for applications')

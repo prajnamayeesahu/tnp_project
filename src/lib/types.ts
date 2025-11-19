@@ -3,7 +3,7 @@
 export type Branch = 'CSE' | 'ECE' | 'EEE' | 'MECH' | 'CIVIL';
 export type Year = '1' | '2' | '3' | '4';
 export type JobStatus = 'OPEN' | 'CLOSED';
-export type ApplicationStatus = 'APPLIED' | 'SHORTLISTED' | 'INTERVIEW' | 'ACCEPTED' | 'REJECTED';
+export type ApplicationStatus =  'SHORTLISTED' | 'INTERVIEW' | 'ACCEPTED' | 'REJECTED' | 'PENDING' ;
 export type AnnouncementTarget = 'ALL' | 'BRANCH' | 'BATCH';
 
 export interface Student {
@@ -46,7 +46,7 @@ export interface Job {
   createdAt: string;
 }
 
-export interface Application {
+export interface Applications {
   id: string;
   jobId: string;
   studentId: string;
